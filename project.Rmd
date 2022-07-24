@@ -1,0 +1,119 @@
+---
+title: "STATS 501 Project Report"
+author: "Akhila Reddy"
+date: '2022-06-29'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Don't delete this chunk if you are using the mosaic package
+# This loads the mosaic and dplyr packages
+require(mosaic)
+require(mosaicData)
+
+
+# Some customization.  You can alter or delete as desired (if you know what you are doing).
+
+# This changes the default colors in lattice plots.
+trellis.par.set(theme=theme.mosaic())  
+
+# knitr settings to control how R chunks work.
+require(knitr)
+opts_chunk$set(
+  tidy=FALSE,     # display code as typed
+  size="small"    # slightly smaller font for code
+)
+```
+##  Introduction 
+
+We have used  data set "COVID-19 Dataset" and "World Happiness Report". These datasets are available on Kaggle. We have combined both the data sets.  The main objective of this project is to analyze whether there is a linear relationship between Total Deaths and GDP per capita and between Total Deaths and social support. Our motivation to conduct this analysis is to understand if GDP per capita and social Support have any effect on covid-19 Total Deaths. Such an understanding would be important while devising health policies. Since we are analysis total deaths from different countries, normalized total deaths(total deaths/ population)would give us better understanding as- more the population, more active cases and more number of deaths. There is no mathematical formula to show relation between Total Deaths and GDP per capita or between Total Deaths and social support. Hence, we check for a linear relationship between the variables and see if the assumptions of the linear relationship satisfy.   
+  
+
+## DATA
+```{r, echo=FALSE }
+covid_19 <- read.csv("C:/Users/APSSDC/Desktop/Project/worldometer_data.csv")
+world_happiness <- read.csv("C:/Users/APSSDC/Desktop/Project/2019.csv")
+new_2019 <- subset(world_happiness, select= -c(Score,Overall.rank,Perceptions.of.corruption,Generosity,Freedom.to.make.life.choices))    
+
+New_covid_19 <- subset(covid_19, select= c(Country.Region,TotalCases,Population,TotalDeaths))
+new_data = merge(x = New_covid_19, y = new_2019, by.x = "Country.Region" , by.y = "Country.or.region", all.x=FALSE , all.y = TRUE )
+new_data1 <- mutate(new_data, norm = log(TotalDeaths/ Population))
+newdata2 <- subset(new_data1, select =  -c(Country.Region))
+summary(new_data1)
+```
+There are ‘156’ rows in the dataset.
+• There are ‘8’ variables in the dataset.
+• The data types of the variables are as follows:
+• “Total Cases”, “Population”, “Total Deaths” ,“GDP per capita” ,“Social support ”, “Population” numerical discrete values
+• “Country Region” are categorical  values.
+• “Norm” are numerical continuous values.
+
+## Including Plots
+
+```{r , echo=FALSE}
+histogram(new_data1$norm)
+histogram(new_data1$GDP.per.capita)
+histogram(new_data1$Social.support)
+pairs(newdata2)
+```
+
+##  Total Deaths vs Social Support
+```{r , echo=FALSE}
+xyplot((norm) ~ Social.support, new_data1, type=c("p", "r"))
+y <- lm( (norm) ~ Social.support , new_data1)
+summary(y)
+histogram(~residuals(y))
+xyplot(residuals(y)~ new_data1$norm)
+```
+
+The slope is 3.12 This means that with every unit increase in Temperature, Humidity decreases by
+1.293e-02 units.
+The value of R2
+is 0.2 (from the model summary). This means that 20% of the variation in Total deaths can be explained Social Support. The correlation coefficient is sqrt(R^2), which is equal to 0.4472 which shows that there is weak linear relationship.  
+
+Assumptions for linear regression.
+1) Linearity: This condition holds as seen from the scatterplot of Humidity vs Temperature.
+2) Residuals are normally distributed: The residuals’ distribution is approximately normal as seen form the histogram above.
+3) Independence of residuals: As seen from the scatter plot above, there seems to be no relation between
+various residuals.
+4) Residual variance is constant: The variance of residuals is constant as seen from the scatter plot below.
+5) Expected value of residuals has to be zero: From the scatter plot it seems that the number of points
+above and below 0 are equal, so the mean of residuals is close to zero.
+
+In conclusion, there are no strong violations of any assumptions. Hence, the linear model is appropriate.
+  
+
+## Total Deaths vs GDP per capita
+
+```{r, echo=FALSE}
+
+xyplot(norm ~ GDP.per.capita, new_data1, type=c("p", "r"))
+x <- lm(norm ~ GDP.per.capita , new_data1)
+summary(x)
+histogram(~residuals(x))
+xyplot(residuals(x)~ new_data1$norm)
+```
+The slope is 2.601. This means that with every unit increase in GDP , the Total Deaths increase by 2.601 units. 
+The value of R2
+is 0.258 (from the model summary). This means that 25.8% of the variation in Total Deaths can explained by GDP. The correlation coefficient is sqrt(R^2), which is equal to 0.507 which shows that there is moderate linear relationship.
+Assumptions for linear regression.
+1) Linearity: This condition holds as seen from the scatterplot of Total Deaths vs GDP per capita. 
+2) Residuals are normally distributed: The residuals’ distribution is approximately normal as seen form
+the histogram above.
+3) Independence of residuals: As seen from the scatterplot below, there seems to be no visible pattern between the residual data points. Hence we can say that this condition is satisfied. 
+4) Residual variance is constant: The variance of residuals is constant as seen from the scatterplot below.
+5) Expected value of residuals has to be zero: From the scatterplot it seems that the number of points
+above and below 0 are equal, so the mean of residuals is close to zero.  
+
+In conclusion, there are no strong violations of any assumptions. Hence, the linear model is appropriate.
+
+
+
+
+##  Conclusion: 
+
+From the above analysis on the "COVID-19 Dataset" and "World Happiness Report", we can conclude that Total Deaths is moderately linearly related to Social Support and GDP per capita.
+Also, comparing the r values for each model(as shown in the above table), we can see that GDP can be best predicted considering all the numerical variables and building a linear model than when only done with GDP. 
